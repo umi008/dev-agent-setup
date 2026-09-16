@@ -9,6 +9,8 @@ House rules · MCP servers · global skills — reproducible on any machine, in 
 Works with Claude Code, OpenCode, Codex CLI, Kilo Code, Cursor, Gemini CLI, Oh My Pi, and anything
 else that reads an `AGENTS.md`-style rules file and speaks MCP.
 
+[![CI](https://github.com/umi008/dev-agent-setup/actions/workflows/ci.yml/badge.svg)](https://github.com/umi008/dev-agent-setup/actions/workflows/ci.yml)
+
 </div>
 
 ---
