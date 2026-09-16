@@ -78,26 +78,30 @@ No agent harness is required by this repo — bring whichever one(s) you already
 
 ## Quick start (let an agent do it)
 
-Clone this repo, open any coding agent inside it, and paste:
+Open any coding agent — in any directory — and paste:
 
 ```text
-Set up this machine from this repository. Do exactly the following, nothing else:
+Set up this machine from the repo at https://github.com/umi008/dev-agent-setup (read its files over
+the network; raw.githubusercontent.com works well). Do exactly the following, nothing else:
 
 1. Detect which agent harnesses are installed on this machine (look for the `claude`, `opencode`,
    `codex`, `omp`, `gemini`, and `cursor-agent` binaries, and for ~/.claude, ~/.config/opencode,
    ~/.codex, ~/.omp, ~/.config/kilo, ~/.cursor). List what you found before changing anything.
-2. For each harness found, install rules/AGENTS.md and the MCP servers following the
-   "Per-harness installation" table in README.md. Skip the `tavily` MCP entry on any harness with
-   native web search (e.g. Oh My Pi). Back up any file you would overwrite to <file>.bak first.
-3. Install the global skills by running every command in skills/SKILLS.md verbatim, then run
+2. For each harness found, install `rules/AGENTS.md` and the MCP servers from `mcp/mcp-servers.json`
+   following the "Per-harness installation" table in that repo's README. Skip the `tavily` MCP entry
+   on any harness with native web search (e.g. Oh My Pi). Back up any file you would overwrite to
+   <file>.bak first.
+3. Install the global skills by running every command in `skills/SKILLS.md` verbatim, then run
    `npx skills ls -g` and show me the result.
-4. Read the "Credentials" section of README.md and tell me which credentials are missing on this
-   machine. Inspect the environment only: never print secret values, never write them to a file.
+4. Read the "Credentials" section of the same README and tell me which credentials are missing on
+   this machine. Inspect the environment only: never print secret values, never write them to a
+   file.
 5. Report a summary: harnesses detected, files written, files backed up, skills installed,
    credentials missing.
 
-Constraints: do not edit this repository, do not invent extra files, do not install language
-toolchains I did not ask for, and stop to ask if a step is ambiguous for a harness you detected.
+Constraints: use the repo's published files as-is — do not modify the repository, do not invent
+extra files, do not install language toolchains I did not ask for, and stop to ask if a step is
+ambiguous for a harness you detected.
 ```
 
 ## Per-harness installation
