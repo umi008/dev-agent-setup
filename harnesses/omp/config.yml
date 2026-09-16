@@ -1,0 +1,61 @@
+providers:
+  webSearchOrder:
+    - tavily
+    - exa
+    - duckduckgo
+    - startpage
+    - google
+    - ecosia
+    - mojeek
+    - public
+modelRoles:
+  smol: deepseek/deepseek-v4.1-flash:low
+  tiny: deepseek/deepseek-v4.1-flash:low
+  slow: deepseek/deepseek-v4.1-flash:max
+  plan: deepseek/deepseek-v4.1-flash:high
+  vision: deepseek/deepseek-v4.1-flash:low
+  designer: deepseek/deepseek-v4.1-flash:high
+  task: deepseek/deepseek-v4.1-flash:high
+  review: deepseek/deepseek-v4.1-flash:max
+  advisor: deepseek/deepseek-v4.1-flash:high
+  default: openrouter/deepseek/deepseek-v4.1-flash:high
+symbolPreset: unicode
+composer:
+  shape: box
+theme:
+  dark: dark-one
+setupVersion: 2
+hideThinkingBlock: true
+task:
+  maxConcurrency: 3
+  isolation:
+    enabled: true
+memory:
+  backend: mnemopi
+autolearn:
+  enabled: true
+display:
+  showTokenUsage: true
+  showTurnTime: true
+astGrep:
+  enabled: true
+compaction:
+  thresholdTokens: 250000
+statusLine:
+  preset: custom
+  separator: ascii
+  sessionAccent: true
+  transparent: false
+  leftSegments:
+    - model
+    - mode
+    - path
+    - subagents
+  rightSegments:
+    - token_rate
+    - cache_hit
+    - cost
+steeringMode: one-at-a-time
+emojiAutocomplete: false
+isolation:
+  backend: auto

@@ -1,0 +1,11 @@
+modelRoles:
+  default: openrouter/deepseek/deepseek-v4-flash:free:high
+  smol: openrouter/z-ai/glm-4.5-air:free:low
+  tiny: openrouter/qwen/qwen3-4b:free:minimal
+  slow: openrouter/moonshotai/kimi-k2.6:free:high
+  plan: openrouter/moonshotai/kimi-k2.6:free:high
+  vision: openrouter/nvidia/nemotron-nano-12b-v2-vl:free:medium
+  designer: openrouter/z-ai/glm-5.2:free:high
+  task: openrouter/qwen/qwen3-coder:free
+  review: openrouter/moonshotai/kimi-k2.6:free:high
+  advisor: openrouter/z-ai/glm-4.5-air:free:low

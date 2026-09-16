@@ -1,0 +1,11 @@
+modelRoles:
+  default: anthropic/claude-opus-5:medium
+  smol: anthropic/claude-sonnet-5:low
+  tiny: anthropic/claude-sonnet-5:low
+  slow: anthropic/claude-opus-5:high
+  plan: anthropic/claude-opus-5:high
+  vision: anthropic/claude-sonnet-5:low
+  designer: anthropic/claude-opus-5:high
+  task: anthropic/claude-sonnet-5:medium
+  review: anthropic/claude-opus-5:high
+  advisor: anthropic/claude-sonnet-5:medium

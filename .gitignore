@@ -1,0 +1,30 @@
+# Backups written by the setup steps
+*.bak
+
+# Local, machine-specific overrides — never commit these
+*.local.yml
+*.local.json
+AGENTS.local.md
+CLAUDE.local.md
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Agent runtime junk (sessions, caches, credentials, installed skills)
+.agents/skills/
+.claude/
+.omp/
+.opencode/
+.codex/
+.kilo/
+.cursor/
+.gemini/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
