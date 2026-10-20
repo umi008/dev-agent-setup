@@ -2,7 +2,7 @@
 
 La regla está en el estándar (Estructura): en cada push y pull request, los mismos gates en el mismo orden. Esta es una forma de cumplirla en cualquier host: el host corre un script y el script corre los gates.
 
-El script se corrió en un contenedor Ubuntu limpio con solo `curl` y `git`: los proyectos Python y React pasan, y uno con un secreto commiteado falla en el último paso. Los snippets de cada host se validaron contra su documentación y se parsearon, pero no se corrieron en los hosts.
+El script se corrió primero en un contenedor Ubuntu limpio con solo `curl` y `git`. Esta versión se volvió a correr el 2026-10-20 contra proyectos mínimos de Python y React: los dos pasan, uno con un secreto commiteado falla en el último paso, y una dependencia vulnerable hace fallar la auditoría. Los snippets de cada host se validaron contra su documentación y se parsearon, pero no se corrieron en los hosts.
 
 ## `scripts/ci.sh`
 
@@ -21,7 +21,8 @@ if [ -f uv.lock ]; then
   uv run ruff check .
   uv run ruff format --check .
   uv run mypy src
-  uv run pytest -m "not slow and not e2e" --cov=src
+  uv run pytest -n auto -m "not slow and not e2e" --cov=src
+  uv audit --locked --preview-features audit-command
 fi
 
 if [ -f pnpm-lock.yaml ]; then
@@ -31,15 +32,17 @@ if [ -f pnpm-lock.yaml ]; then
   pnpm format:check
   pnpm typecheck
   pnpm test
+  pnpm audit --audit-level high
 fi
 
-uvx --python 3.12 pre-commit run secrets --all-files --hook-stage manual
+uvx --python 3.14 pre-commit run secrets --all-files --hook-stage manual
 ```
 
 El host solo necesita `curl`, `git` y un shell: `uv` descarga el Python de `.python-version`, y pnpm se descarga a sí mismo y a Node desde `package.json`. El script no lleva versiones propias.
 
 - **`SHELL=/bin/bash`:** el instalador de pnpm aborta con `ERR_PNPM_UNKNOWN_SHELL` cuando `SHELL` no está definido, como pasa en un contenedor limpio.
 - **Clon completo:** el gate de secretos escanea el historial, así que el checkout no puede ser superficial.
+- **La auditoría necesita red.** `uv audit` y `pnpm audit` consultan bases de avisos de seguridad; corren después de los tests, que siguen sin red.
 
 ## Hosts
 

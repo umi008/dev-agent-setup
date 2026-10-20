@@ -4,15 +4,17 @@
 One standard so every project starts with quality and observability already solved. The tool can be changed with a written reason; what each gate catches cannot. A rule is worth what its mechanism is worth: what is not executed degrades into text and gets ignored. It is designed for agents, which copy what they see: a stale comment or a suppression multiplies, and human review does not scale.
 
 ## Hard rules (MUST / NEVER)
-Commit the lockfile and install with `--locked` / `--frozen-lockfile`; add dependencies only with `uv add` / `pnpm add`, never by editing a lockfile or activating a venv by hand. Secrets never enter the repo: `.env` is git-ignored, `.env.example` lists names only, and values come from the environment. Strict types passing and 80% coverage, never lowered to turn green. One concern per commit, with the tests alongside the code, and never `--no-verify`, `--force`, `|| true` or skip markers. Zero comments (the why goes in names, tests or ADRs; only docstrings or JSDoc on the public API) and zero workarounds or suppressions (`noqa`, `type: ignore`, `@ts-ignore`, `eslint-disable`, `pragma`, `fmt: off`): fix the cause, and if that is not possible today, stop and ask. One pattern, one way: copy the existing example. Nothing is declared "green" without running the gates and showing their output.
+Commit the lockfile and install with `--locked` / `--frozen-lockfile`; add dependencies only with `uv add` / `pnpm add`, never by editing a lockfile or activating a venv by hand. The package manager's supply-chain defaults stay on: pnpm's `minimumReleaseAge` and `blockExoticSubdeps` are never lowered or disabled. Secrets never enter the repo: `.env` is git-ignored, `.env.example` lists names only, and values come from the environment. Strict types passing and 80% coverage, never lowered to turn green. One concern per commit, with the tests alongside the code, and never `--no-verify`, `--force`, `|| true` or skip markers. Zero comments (the why goes in names, tests or ADRs; only docstrings or JSDoc on the public API) and zero workarounds or suppressions (`noqa`, `type: ignore`, `@ts-ignore`, `eslint-disable`, `pragma`, `fmt: off`): fix the cause, and if that is not possible today, stop and ask. One pattern, one way: copy the existing example. Nothing is declared "green" without running the gates and showing their output.
 
 ## Versions
 Always LTS or the latest stable release, never experimental versions (alpha, beta, RC, nightly) unless the user explicitly asks for them.
-- **Python:** 3.12 pinned, not a range.
+- **Python:** 3.14 pinned, not a range. A new minor is adopted once the gate tools support it.
 - **Node:** the active LTS; never an odd-numbered major, which never reaches LTS.
 - **pnpm:** the latest stable (`pnpm self-update`).
 - **Libraries and hooks:** resolved by the tool (`uv add`, `pnpm add`, `pre-commit autoupdate`), never hand-written versions.
 - **Pin:** the runtime and the package manager are pinned in the repo and written by the tool, never by hand: `.python-version`, and in `package.json` `devEngines` and `packageManager` (`pnpm runtime set node lts`, `pnpm self-update`). CI reads those files and never duplicates the version.
+- **Updates:** a bot (Renovate or Dependabot) opens the dependency update pull requests and the gates validate them.
+- **Written exception:** `uv audit` is a uv preview feature. It is the only experimental tool the standard uses, because it is the uv-native dependency audit; when it becomes stable, `--preview-features audit-command` is dropped.
 
 ## Gates
 
@@ -22,9 +24,10 @@ Always LTS or the latest stable release, never experimental versions (alpha, bet
 | 2   | Lint               | Unused imports, undefined names, unsafe patterns         | `uv run ruff check .`                                                      | `pnpm lint` (ESLint, `--max-warnings 0`)  |
 | 3   | Format             | Inconsistent style; it is checked, not just applied      | `uv run ruff format --check .`                                             | `pnpm format:check` (Prettier)            |
 | 4   | Types              | Misused types                                            | `uv run mypy src` (strict)                                                 | `pnpm typecheck` (`tsc --noEmit`, strict) |
-| 5   | Tests and coverage | Regressions and tests that pass without proving anything | `uv run pytest -m "not slow and not e2e" --cov=src`                        | `pnpm test` (Vitest with coverage)        |
+| 5   | Tests and coverage | Regressions and tests that pass without proving anything | `uv run pytest -n auto -m "not slow and not e2e" --cov=src`                | `pnpm test` (Vitest with coverage)        |
 | 6   | Comments           | Comments and suppressions in the code                    | `tests/test_no_comments.py`                                                | ESLint rule `local/no-comments`           |
-| 7   | Secrets            | Credentials committed to the history                     | `uvx --python 3.12 pre-commit run secrets --all-files --hook-stage manual` | same                                      |
+| 7   | Dependencies       | Dependencies with known vulnerabilities                  | `uv audit --locked --preview-features audit-command`                       | `pnpm audit --audit-level high`           |
+| 8   | Secrets            | Credentials committed to the history                     | `uvx --python 3.14 pre-commit run secrets --all-files --hook-stage manual` | same                                      |
 
 ## Coverage
 - The floor is declared **only in the tool config**, never in the pipeline.
@@ -35,19 +38,19 @@ Always LTS or the latest stable release, never experimental versions (alpha, bet
 - **Unit:** every business rule, branch and error path, no I/O.
 - **Integration:** only the real wiring, marked with `-m integration`.
 - **E2E:** optional, only the key flows.
-- **Hermetic and parallel:** no shared state; `tmp_path`, ephemeral ports, zero network after sync, no ordering between tests. They must run the same from a clean clone.
+- **Hermetic and parallel:** no shared state; `tmp_path`, ephemeral ports, zero network after sync, no ordering between tests. They must run the same from a clean clone. In Python, `pytest-xdist` (`-n auto`) runs them in parallel and `pytest-randomly` shuffles their order on every run; Vitest already runs test files in parallel.
 - **Bug fix:** starts with a test that reproduces the bug. Without it, the fix is postponed.
 - **Behavior, not implementation:** tests assert what is observable. A flaky test goes to quarantine; it is not tolerated.
 
 ## Structure
 - **Common root:** `README.md`, `AGENTS.md`, `.pre-commit-config.yaml`, pipeline, `.gitignore`, manifest with lockfile and pinned runtime.
-- **Hooks:** lint, format and secrets run on every commit. A hook can be skipped, so CI is the backstop.
+- **Hooks:** lint, format and secrets run on every commit, and the commit message is checked against Conventional Commits. A hook can be skipped, so CI is the backstop.
 - **CI:** on every push and pull request, the same gates in the same order, with the runtime read from the pin files. The clone includes the history, which the secrets gate scans.
 
 ## Observability
 Goal: reconstruct an incident from a single id.
-- **`trace_id`:** generated at the edge, propagated with `contextvars` and sent on every outgoing call.
-- **JSON logs:** `trace_id`, `level`, `ts` (UTC) and `event`. Never free text; one event per line.
+- **Trace context:** OpenTelemetry with the W3C `traceparent` header. The `trace_id` is generated at the edge when the request brings none, propagated in-process by the OpenTelemetry context (`contextvars` in Python) and sent on every outgoing call.
+- **JSON logs:** `trace_id` of the active span, `level`, `ts` (UTC) and `event` (`structlog` in Python). Never free text; one event per line.
 - **Redaction:** PII and secrets are redacted before emitting, prompts included.
 - **Levels:** `ERROR` is what nobody handled and someone must open; what was handled (retry, fallback) is `WARN`; `DEBUG` is off or sampled in production.
 - **Business events:** stable name `domain.fact` and no PII. They do not replace the log.
@@ -65,7 +68,7 @@ Minimal: an agent reads the code directly, so the documentation does not repeat 
 - **Same commit:** documentation is written with the code, not afterwards.
 
 ## Commits and delivery
-- Conventional Commits and SemVer.
+- Conventional Commits, checked by the `commit-msg` hook, and SemVer.
 - A refactor is never mixed into an adoption or retrofit commit.
 
 ## When to stop and ask
@@ -82,5 +85,5 @@ From strongest to weakest: **architecture** (the error is impossible by design) 
 
 ## Adoption and audit
 - **New project:** this document lives in the repo from the start, and the gates are green before any domain code is written.
-- **Existing repo:** add this document to the repo and ask the agent to apply it. First a read-only audit, where each `broken` comes with the command and its real output; nothing is fixed while auditing. Then a retrofit with one commit per step: reproducibility → lint, format and hooks → types (`src/` first) → tests and floor → comment and suppression cleanup → CI → structure, docs and observability.
+- **Existing repo:** add this document to the repo and ask the agent to apply it. First a read-only audit, where each `broken` comes with the command and its real output; nothing is fixed while auditing. Then a retrofit with one commit per step: reproducibility → lint, format and hooks → types (`src/` first) → tests and floor → comment and suppression cleanup → dependency audit → CI → structure, docs and observability.
 - **Verdict:** per area (reproducibility, gates, hooks and CI, structure and docs, observability, tests, delivery), each one `green`, `missing` or `broken`. A gate that does not pass, does not pass.

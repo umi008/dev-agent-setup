@@ -1,6 +1,6 @@
 # AGENTS.md
 
-API de pedidos en Python 3.12. Estándar completo: `Engineering_standards.md`.
+API de pedidos en Python 3.14. Estándar completo: `Engineering_standards.md`.
 
 ## Comandos
 - Instalar: `uv sync --locked`
@@ -8,9 +8,10 @@ API de pedidos en Python 3.12. Estándar completo: `Engineering_standards.md`.
   1. `uv run ruff check .`
   2. `uv run ruff format --check .`
   3. `uv run mypy src`
-  4. `uv run pytest -m "not slow and not e2e" --cov=src`
-  5. `uvx --python 3.12 pre-commit run secrets --all-files --hook-stage manual`
-- En un proyecto Node/React: `pnpm install --frozen-lockfile`, luego `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test` y el mismo comando de secretos.
+  4. `uv run pytest -n auto -m "not slow and not e2e" --cov=src`
+  5. `uv audit --locked --preview-features audit-command`
+  6. `uvx --python 3.14 pre-commit run secrets --all-files --hook-stage manual`
+- En un proyecto Node/React: `pnpm install --frozen-lockfile`, luego `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm audit --audit-level high` y el mismo comando de secretos.
 - Antes de decir "verde", correr los gates y mostrar su salida.
 
 ## Estructura

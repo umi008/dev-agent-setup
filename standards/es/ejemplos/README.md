@@ -3,7 +3,7 @@
 API de pedidos: crea, consulta y cancela pedidos.
 
 ## Requisitos
-Python 3.12 y [uv](https://docs.astral.sh/uv/).
+Python 3.14 y [uv](https://docs.astral.sh/uv/).
 
 ## Instalar
 ```bash
@@ -17,7 +17,7 @@ uv run uvicorn app.main:app --reload
 
 ## Testear
 ```bash
-uv run pytest -m "not slow and not e2e" --cov=src
+uv run pytest -n auto -m "not slow and not e2e" --cov=src
 ```
 Los gates completos están en `AGENTS.md`.
 

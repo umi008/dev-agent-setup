@@ -28,7 +28,7 @@ End with the report and wait for my OK.
 Phase 2: retrofit, only after the OK.
 
 ```text
-Apply the retrofit, one commit per step and in this order: reproducibility (pinned runtime, lockfile) → lint, format and hooks → types (src/ first) → tests and coverage floor → comment and suppression cleanup → CI → structure, docs and observability.
+Apply the retrofit, one commit per step and in this order: reproducibility (pinned runtime, lockfile) → lint, format and hooks → types (src/ first) → tests and coverage floor → comment and suppression cleanup → dependency audit → CI → structure, docs and observability.
 - The coverage floor starts at the measured value and only goes up; the gap against 80 stays as debt.
 - Never weaken a gate or mix a refactor into these commits.
 - If tests have to be deleted, a gate only passes by weakening it, or a secret turns up in the history, stop and ask.
