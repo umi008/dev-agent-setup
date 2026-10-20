@@ -33,14 +33,14 @@ read the whole thing in ten minutes.
 | Piece | What it is | Where |
 | --- | --- | --- |
 | **Engineering standard** | One short, enforceable standard — versions, gates, tests, structure, observability, docs — with adoption prompts and the config for every gate. Written for coding agents, so the rules are backed by gates that fail, not by prose. | [`standards/`](standards/README.md) |
-| **MCP servers** | The MCP servers I run and what each one is for: Tavily, Playwright, Context7, Engram — with Exa and Firecrawl as drop-in alternatives to Tavily. | [`mcps/MCPS.md`](mcps/MCPS.md) |
-| **Skills** | 11 agent skills, installed globally from their upstream repos with the `skills` CLI and shared by every harness that reads `~/.agents/skills`. | [`skills/SKILLS.md`](skills/SKILLS.md) |
+| **MCP servers** | The MCP servers I run and what each one is for: Tavily, Context7, Engram — with Exa and Firecrawl as drop-in alternatives to Tavily, and the Playwright MCP as an option next to the `playwright-cli` skill. | [`mcps/MCPS.md`](mcps/MCPS.md) |
+| **Skills** | 18 agent skills, installed globally from their upstream repos with the `skills` CLI into `~/.agents/skills` and linked into `~/.claude/skills` for Claude Code. | [`skills/SKILLS.md`](skills/SKILLS.md) |
 
 ## Used with Gentle AI
 
 This repo is one half of the setup; [**Gentle AI**](https://github.com/Gentleman-Programming/gentle-ai)
 is the other. Gentle AI is the harness layer over [Pi](https://pi.dev): it plans, delegates to focused
-subagents, reviews its own changes, and ships its own skills on top of the eleven listed below. Into
+subagents, reviews its own changes, and ships its own skills on top of the eighteen listed below. Into
 Pi it goes with `pi install npm:gentle-pi`.
 
 It is also where **Context7** and **Engram** come from — that is why `mcps/MCPS.md` lists them without
@@ -91,11 +91,11 @@ TOML keys differ.
 ### 3. Skills
 
 Skills are **not vendored** here. They are installed globally from their upstream repos with the
-[`skills`](https://skills.sh) CLI, which writes to `~/.agents/skills/` — the directory OMP, Claude
-Code and most other harnesses read:
+[`skills`](https://skills.sh) CLI. It writes to `~/.agents/skills/`, the directory Pi, OMP and most
+other harnesses read, and links each skill into `~/.claude/skills/`, the only one Claude Code reads:
 
 ```bash
-# run the two commands in skills/SKILLS.md, then:
+# run the commands in skills/SKILLS.md, then:
 npx skills ls -g
 npx skills update -g -y
 ```
@@ -135,6 +135,8 @@ Context7 and Playwright need no credentials.
 
 - **Editing this repo?** `AGENTS.md` at the root holds the conventions. It is not the standard you
   install — that one is `standards/en/Engineering_standards.md`.
+- **Claude Code and `AGENTS.md`.** Claude Code reads `AGENTS.md` since v2.1.277, but only when the
+  project has no `CLAUDE.md`. If it has one, add the line `@AGENTS.md` to it.
 - **Skills stay upstream.** `npx skills update -g` keeps them current instead of freezing a copy here.
 
 ## License

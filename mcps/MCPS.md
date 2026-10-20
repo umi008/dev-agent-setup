@@ -8,22 +8,22 @@ environment variables, never literals.
 | Server | What it is for | Where it comes from |
 | --- | --- | --- |
 | **Tavily** | Web search, for harnesses that do not ship a native search provider chain. | `npx -y tavily-mcp@latest` — reads `TAVILY_API_KEY` from the environment. |
-| **Playwright** | Headless browser: driving and verifying local web apps, screenshots, logs. | `npx -y @playwright/mcp@0.0.79 --browser chromium --headless` |
 | **Context7** | Live documentation for libraries and frameworks, instead of trusting memory. | Comes with Gentle AI — nothing to configure. |
 | **Engram** | Persistent memory across sessions and compactions. | Comes with Gentle AI — nothing to configure. |
 
+The browser is not an MCP server here: it is the `playwright-cli` skill from
+[`skills/SKILLS.md`](../skills/SKILLS.md). Microsoft recommends the CLI for coding agents because it
+does not load tool schemas and accessibility trees into the context; the Playwright MCP stays an
+option for long autonomous browser loops (see below).
+
 ## Canonical block
 
-Only Tavily and Playwright are configured by hand; Context7 and Engram are provided by [Gentle
+Only Tavily is configured by hand; Context7 and Engram are provided by [Gentle
 AI](https://github.com/Gentleman-Programming/gentle-ai).
 
 ```json
 {
   "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp@0.0.79", "--browser", "chromium", "--headless"]
-    },
     "tavily": {
       "command": "npx",
       "args": ["-y", "tavily-mcp@latest"],
@@ -52,9 +52,23 @@ cannot speak remote MCP.
 Pick **one** search server. Two search providers in the same session duplicate the tool surface and
 burn two API calls for one question.
 
+## Optional: Playwright MCP
+
+For exploratory automation or long-running browser loops, where keeping the browser state in the
+conversation is worth the tokens, add the MCP server next to Tavily:
+
+```json
+"playwright": {
+  "command": "npx",
+  "args": ["-y", "@playwright/mcp@latest", "--browser", "chromium", "--headless"]
+}
+```
+
+It needs no credentials. Use it or the `playwright-cli` skill for a given task, not both at once.
+
 ## Notes
 
-- **One shape, many harnesses.** Tavily, Playwright and the Exa and Firecrawl packages are plain
+- **One shape, many harnesses.** Tavily, the Playwright MCP and the Exa and Firecrawl packages are plain
   stdio processes launched with `npx`; Exa and Firecrawl also offer remote endpoints that you declare
   with a URL instead. Only the surrounding JSON or TOML keys change: the `mcpServers` shape above is
   what most clients expect, so check your harness's docs for its own key and transport field names.
