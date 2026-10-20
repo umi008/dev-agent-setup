@@ -34,13 +34,13 @@ read the whole thing in ten minutes.
 | --- | --- | --- |
 | **Engineering standard** | One short, enforceable standard — versions, gates, tests, structure, observability, docs — with adoption prompts and the config for every gate. Written for coding agents, so the rules are backed by gates that fail, not by prose. | [`standards/`](standards/README.md) |
 | **MCP servers** | The MCP servers I run and what each one is for: Tavily, Context7, Engram — with Exa and Firecrawl as drop-in alternatives to Tavily, and the Playwright MCP as an option next to the `playwright-cli` skill. | [`mcps/MCPS.md`](mcps/MCPS.md) |
-| **Skills** | 18 agent skills, installed globally from their upstream repos with the `skills` CLI into `~/.agents/skills` and linked into `~/.claude/skills` for Claude Code. | [`skills/SKILLS.md`](skills/SKILLS.md) |
+| **Skills** | 25 agent skills, installed globally from their upstream repos with the `skills` CLI into `~/.agents/skills` and linked into `~/.claude/skills` for Claude Code. | [`skills/SKILLS.md`](skills/SKILLS.md) |
 
 ## Used with Gentle AI
 
 This repo is one half of the setup; [**Gentle AI**](https://github.com/Gentleman-Programming/gentle-ai)
 is the other. Gentle AI is the harness layer over [Pi](https://pi.dev): it plans, delegates to focused
-subagents, reviews its own changes, and ships its own skills on top of the eighteen listed below. Into
+subagents, reviews its own changes, and ships its own skills on top of the twenty-five listed below. Into
 Pi it goes with `pi install npm:gentle-pi`.
 
 It is also where **Context7** and **Engram** come from — that is why `mcps/MCPS.md` lists them without

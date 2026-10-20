@@ -1,6 +1,6 @@
 # Skills
 
-Eighteen agent skills, installed **globally** from their upstream repos with the
+Twenty-five agent skills, installed **globally** from their upstream repos with the
 [`skills`](https://skills.sh) CLI. Nothing is vendored here: they stay upstream so
 `npx skills update -g` keeps them current.
 
@@ -13,14 +13,25 @@ documentation and skill authoring.
 ```bash
 npx skills add addyosmani/agent-skills -g -a universal -a claude-code -y \
   -s api-and-interface-design \
-  -s debugging-and-error-recovery \
   -s documentation-and-adrs \
   -s frontend-ui-engineering \
   -s observability-and-instrumentation \
   -s performance-optimization \
   -s security-and-hardening \
-  -s source-driven-development \
-  -s test-driven-development
+  -s source-driven-development
+
+npx skills add mattpocock/skills -g -a universal -a claude-code -y \
+  -s grill-me \
+  -s grilling \
+  -s handoff \
+  -s retro \
+  -s writing-for-agents \
+  -s tdd \
+  -s diagnosing-bugs
+
+npx skills add vercel-labs/skills -g -a universal -a claude-code -y -s find-skills
+
+npx skills add cursor/plugins -g -a universal -a claude-code -y -s unslop
 
 npx skills add anthropics/skills -g -a universal -a claude-code -y \
   -s frontend-design \
@@ -59,14 +70,21 @@ npx skills update -g -y    # keep everything current
 | Skill | Upstream | For |
 | --- | --- | --- |
 | `api-and-interface-design` | addyosmani/agent-skills | Designing APIs, module boundaries and the type contracts between modules. |
-| `debugging-and-error-recovery` | addyosmani/agent-skills | Systematic root-cause debugging instead of guessing. |
 | `documentation-and-adrs` | addyosmani/agent-skills | Recording decisions and the context future engineers and agents need. |
 | `frontend-ui-engineering` | addyosmani/agent-skills | Production-quality, accessible, responsive user interfaces. |
 | `observability-and-instrumentation` | addyosmani/agent-skills | Logging, metrics, tracing and alerting, so production behavior is visible. |
 | `performance-optimization` | addyosmani/agent-skills | Profiling and fixing regressions: Core Web Vitals, N+1 queries, slow paths. |
 | `security-and-hardening` | addyosmani/agent-skills | OWASP Top Ten, input handling, auth, and triaging dependency audit findings. |
 | `source-driven-development` | addyosmani/agent-skills | Grounding each implementation decision in the official docs; pairs with Context7. |
-| `test-driven-development` | addyosmani/agent-skills | The red–green–refactor loop, driven by tests. |
+| `grill-me` | mattpocock/skills | Typed by you (`/grill-me`): the agent interviews you about a plan until nothing is left assumed. |
+| `grilling` | mattpocock/skills | The interview that `grill-me` runs; install both. |
+| `handoff` | mattpocock/skills | Typed by you: compacts the session into a document another session or harness can pick up. |
+| `retro` | mattpocock/skills | Typed by you after a session: proposes environment fixes, such as a gate for a repeated mistake or a shorter `AGENTS.md`. |
+| `writing-for-agents` | mattpocock/skills | Writing `AGENTS.md`, skills and other docs that agents read; `retro` uses it. |
+| `tdd` | mattpocock/skills | Red–green–refactor one vertical slice at a time, testing behavior through public interfaces. |
+| `diagnosing-bugs` | mattpocock/skills | A loop for hard bugs: reproduce red, minimise, hypothesise, instrument, fix, regression-test. |
+| `find-skills` | vercel-labs/skills | Lets the agent search skills.sh and propose a skill when the task needs one this set lacks. |
+| `unslop` | cursor/plugins (poteto) | Typed by you: removes AI tells from READMEs, PR descriptions and commit messages. |
 | `frontend-design` | anthropics/skills | Distinctive visual design direction, away from templated defaults. |
 | `docx` | anthropics/skills | Creating, reading and editing Word documents. |
 | `pdf` | anthropics/skills | Reading, merging, splitting and generating PDFs. |
