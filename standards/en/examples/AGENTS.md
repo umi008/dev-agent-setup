@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Orders API on Python 3.12. Full standard: `Engineering_standards.md`.
+Orders API on Python 3.14. Full standard: `Engineering_standards.md`.
 
 ## Commands
 - Install: `uv sync --locked`
@@ -8,9 +8,10 @@ Orders API on Python 3.12. Full standard: `Engineering_standards.md`.
   1. `uv run ruff check .`
   2. `uv run ruff format --check .`
   3. `uv run mypy src`
-  4. `uv run pytest -m "not slow and not e2e" --cov=src`
-  5. `uvx --python 3.12 pre-commit run secrets --all-files --hook-stage manual`
-- In a Node/React project: `pnpm install --frozen-lockfile`, then `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test` and the same secrets command.
+  4. `uv run pytest -n auto -m "not slow and not e2e" --cov=src`
+  5. `uv audit --locked --preview-features audit-command`
+  6. `uvx --python 3.14 pre-commit run secrets --all-files --hook-stage manual`
+- In a Node/React project: `pnpm install --frozen-lockfile`, then `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm audit --audit-level high` and the same secrets command.
 - Before saying "green", run the gates and show their output.
 
 ## Structure

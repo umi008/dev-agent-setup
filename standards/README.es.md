@@ -23,16 +23,18 @@ Vercel).
 ## De un vistazo
 
 - **Reproducible:** lockfile commiteado, instalación con `--locked`, runtime fijado.
-- **Con gates:** lint, formato, tipos strict, tests con piso de 80% de coverage y verificación de
-  cero comentarios. Nada está «en verde» hasta correr los gates y mostrar su salida.
+- **Con gates:** lint, formato, tipos strict, tests con piso de 80% de coverage, verificación de
+  cero comentarios y auditoría de dependencias. Nada está «en verde» hasta correr los gates y mostrar su salida.
 - **Sin supresiones:** ni `noqa`, ni `type: ignore`, ni `eslint-disable`. Se arregla la causa, o se
   detiene y pregunta.
 - **Sin secretos en el repo:** un hook bloquea el commit y el CI escanea el historial.
-- **Observable:** logs JSON con un `trace_id` generado en el borde.
+- **Supply chain:** las defensas de pnpm por antigüedad de versión y dependencias exóticas quedan
+  activas; un bot abre los PRs de actualización.
+- **Observable:** logs JSON con un `trace_id` de OpenTelemetry generado en el borde.
 - **Docs mínimas:** `README.md`, `AGENTS.md` y ADR cortos. Un dato, un dueño.
 - **Versiones estables:** LTS o la última estable; experimental solo si lo pides.
 
-Stacks: Python 3.12 con [uv](https://docs.astral.sh/uv/), y Node/React con
+Stacks: Python 3.14 con [uv](https://docs.astral.sh/uv/), y Node/React con
 [pnpm](https://pnpm.io/).
 
 ## Uso
@@ -46,9 +48,10 @@ Stacks: Python 3.12 con [uv](https://docs.astral.sh/uv/), y Node/React con
 
 ## Verificación
 
-Los snippets de `es/ejemplos/config.md` se corrieron el 2026-10-14 en proyectos mínimos de Python y
-React: los gates pasan en verde, y los de cero comentarios, coverage y secretos fallan cuando deben.
-`scripts/ci.sh` se corrió en un contenedor Ubuntu limpio. Los snippets de host de `es/ejemplos/ci.md`
+Los snippets de `es/ejemplos/config.md` se corrieron el 2026-10-14 y de nuevo el 2026-10-20 en
+proyectos mínimos de Python y React: los gates pasan en verde, y las verificaciones de cero
+comentarios, coverage, dependencias, secretos y mensaje de commit fallan cuando deben.
+`scripts/ci.sh` se corrió primero en un contenedor Ubuntu limpio y de nuevo el 2026-10-20. Los snippets de host de `es/ejemplos/ci.md`
 se contrastaron con la documentación de cada host, no se corrieron en los hosts. Los límites
 conocidos están anotados en esos archivos.
 

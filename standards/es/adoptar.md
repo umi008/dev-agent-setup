@@ -28,7 +28,7 @@ Termina con el reporte y espera mi OK.
 Fase 2: retrofit, solo después del OK.
 
 ```text
-Aplica el retrofit, un commit por paso y en este orden: reproducibilidad (runtime pineado, lockfile) → lint, formato y hooks → tipos (src/ primero) → tests y piso de coverage → limpieza de comentarios y supresiones → CI → estructura, docs y observabilidad.
+Aplica el retrofit, un commit por paso y en este orden: reproducibilidad (runtime pineado, lockfile) → lint, formato y hooks → tipos (src/ primero) → tests y piso de coverage → limpieza de comentarios y supresiones → auditoría de dependencias → CI → estructura, docs y observabilidad.
 - El piso de coverage arranca en el valor medido y solo sube; la brecha frente a 80 queda como deuda.
 - Nunca debilites un gate ni mezcles un refactor en estos commits.
 - Si hay que borrar tests, un gate solo pasa debilitándolo, o aparece un secreto en el historial, detente y pregunta.

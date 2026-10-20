@@ -2,7 +2,7 @@
 
 The rule is in the standard (Structure): on every push and pull request, the same gates in the same order. This is one way to meet it on any host: the host runs one script and the script runs the gates.
 
-The script was run in a clean Ubuntu container with only `curl` and `git`: Python and React projects pass, and a project with a committed secret fails at the last step. The host snippets were validated against each host's documentation and parsed, but not run on the hosts.
+The script was first run in a clean Ubuntu container with only `curl` and `git`. This version was rerun on 2026-10-20 against minimal Python and React projects: both pass, a project with a committed secret fails at the last step, and a vulnerable dependency fails the audit. The host snippets were validated against each host's documentation and parsed, but not run on the hosts.
 
 ## `scripts/ci.sh`
 
@@ -21,7 +21,8 @@ if [ -f uv.lock ]; then
   uv run ruff check .
   uv run ruff format --check .
   uv run mypy src
-  uv run pytest -m "not slow and not e2e" --cov=src
+  uv run pytest -n auto -m "not slow and not e2e" --cov=src
+  uv audit --locked --preview-features audit-command
 fi
 
 if [ -f pnpm-lock.yaml ]; then
@@ -31,15 +32,17 @@ if [ -f pnpm-lock.yaml ]; then
   pnpm format:check
   pnpm typecheck
   pnpm test
+  pnpm audit --audit-level high
 fi
 
-uvx --python 3.12 pre-commit run secrets --all-files --hook-stage manual
+uvx --python 3.14 pre-commit run secrets --all-files --hook-stage manual
 ```
 
 The host needs only `curl`, `git` and a shell: `uv` downloads the Python from `.python-version`, and pnpm downloads itself and Node from `package.json`. The script has no versions of its own.
 
 - **`SHELL=/bin/bash`:** the pnpm installer aborts with `ERR_PNPM_UNKNOWN_SHELL` when `SHELL` is unset, as it is in a clean container.
 - **Full clone:** the secrets gate scans the history, so the checkout cannot be shallow.
+- **The audit needs the network.** `uv audit` and `pnpm audit` query advisory databases; they run after the tests, which stay offline.
 
 ## Hosts
 

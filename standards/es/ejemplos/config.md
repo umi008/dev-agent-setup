@@ -1,12 +1,12 @@
 # Config de referencia
 
-Cada snippet se probó el 2026-10-14 en proyectos mínimos (Python, y React con Vite): los gates pasan en verde, y los de cero comentarios, coverage y secretos fallan cuando deben.
+Cada snippet se probó el 2026-10-14 y de nuevo el 2026-10-20 en proyectos mínimos (Python, y React con Vite): los gates pasan en verde, y las verificaciones de cero comentarios, coverage, dependencias, secretos y mensaje de commit fallan cuando deben.
 
 ## Python
 
 `.python-version`
 ```
-3.12
+3.14
 ```
 
 `pyproject.toml`
@@ -15,11 +15,11 @@ Cada snippet se probó el 2026-10-14 en proyectos mínimos (Python, y React con 
 name = "mi-servicio"
 version = "0.1.0"
 description = "Qué hace el servicio, en una línea"
-requires-python = "==3.12.*"
+requires-python = "==3.14.*"
 dependencies = []
 
 [dependency-groups]
-dev = ["mypy", "pytest", "pytest-cov", "ruff"]
+dev = ["mypy", "pytest", "pytest-cov", "pytest-randomly", "pytest-xdist", "ruff"]
 
 [tool.ruff]
 line-length = 100
@@ -57,9 +57,12 @@ def test_sin_comentarios() -> None:
     assert not offenders, offenders
 ```
 
-`requires-python` es `==3.12.*`, no `>=3.12`: un rango contradiría el pin.
+`requires-python` es `==3.14.*`, no `>=3.14`: un rango contradiría el pin.
 
 Primer uso: `uv lock && uv sync --locked`. Después, los gates de la tabla.
+
+- **`pytest-xdist` y `pytest-randomly`** convierten «herméticos y paralelos» en un gate: `-n auto` reparte los tests en un worker por CPU y el orden cambia en cada corrida. Un test que depende de otro falla tarde o temprano; la corrida imprime `Using --randomly-seed=<n>`, y pasar ese flag reproduce el orden.
+- **`uv audit` es una preview de uv.** `--preview-features audit-command` la acepta de forma explícita y silencia el aviso; `--locked` audita el lockfile commiteado. Falla ante cualquier vulnerabilidad conocida, y `uv lock --upgrade-package <nombre>` lleva el paquete a una versión corregida.
 
 ## Frontend (Node / React)
 
@@ -83,10 +86,10 @@ pnpm add -D typescript@6 vite @vitejs/plugin-react vitest @vitest/coverage-v8 js
     "test": "vitest run --coverage"
   },
   "devEngines": {
-    "packageManager": { "name": "pnpm", "version": "12.11.2", "onFail": "download" },
+    "packageManager": { "name": "pnpm", "version": "12.14.0", "onFail": "download" },
     "runtime": { "name": "node", "version": "24.22.0", "onFail": "download" }
   },
-  "packageManager": "pnpm@12.11.2"
+  "packageManager": "pnpm@12.14.0"
 }
 ```
 
@@ -189,8 +192,10 @@ export default defineConfig([
 
 - **pnpm, no npm.** pnpm fija su propia versión y la de Node en `package.json` y el lockfile, y las descarga si faltan; npm solo valida `devEngines`. `pnpm self-update` sube el pin de pnpm a la última.
 - **`noInlineConfig` es obligatorio.** Sin él, `/* eslint-disable */` apaga la propia `local/no-comments` y el gate no lo ve. Con él, ESLint ignora la directiva, la reporta y `--max-warnings 0` falla.
-- **TypeScript 6, no 7.** El 2026-10-14 `typescript-eslint` 8.71.2 exige `typescript <6.1.0`. Cuando soporte el 7, se sube.
-- **Hace falta `@types/node`.** `vitest/config` referencia tipos de Node y `tsc` falla sin ellos. Su major debe ser el del pin de Node.
+- **TypeScript 6, no 7.** El 2026-10-20 `typescript-eslint` 8.72.0 sigue exigiendo `typescript <6.1.0`. Cuando soporte el 7, se sube.
+- **Hace falta `@types/node`.** `vitest/config` referencia tipos de Node y `tsc` falla sin ellos. Su major debe ser el del pin de Node. Node 26 pasa a ser la LTS activa el 2026-10-28: desde ese día `pnpm runtime set node lts` escribe 26, y `@types/node@26` va en el mismo commit.
+- **`pnpm audit --audit-level high`** es el gate de dependencias: falla ante avisos de severidad alta y crítica.
+- **Las defensas de supply chain están activas.** Desde pnpm 11, `minimumReleaseAge` (un día) salta las versiones publicadas en las últimas 24 horas y `blockExoticSubdeps` rechaza dependencias transitivas desde git o URLs de tarball. El 2026-10-20 `pnpm add` resolvió `typescript-eslint` 8.71.2, no la 8.72.0 publicada el día anterior: es la defensa funcionando, no un lockfile viejo.
 - **Testing Library necesita `tests/setup.ts`.** Sin globals no limpia entre tests y el segundo falla con "Found multiple elements".
 - **`react-hooks`** es parte del gate de lint: falla ante un hook llamado de forma condicional.
 
@@ -198,12 +203,18 @@ export default defineConfig([
 
 `.pre-commit-config.yaml` para Python. El `rev` va vacío y lo llena `pre-commit autoupdate`.
 ```yaml
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: ""
     hooks:
       - id: ruff-check
       - id: ruff-format
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: ""
+    hooks:
+      - id: commitizen
   - repo: https://github.com/gitleaks/gitleaks
     rev: ""
     hooks:
@@ -215,7 +226,7 @@ repos:
         stages: [manual]
 ```
 
-Para Node, se cambia el bloque de ruff por hooks locales y se conserva el de gitleaks:
+Para Node, se cambia el bloque de ruff por hooks locales y se conserva el resto:
 ```yaml
   - repo: local
     hooks:
@@ -231,7 +242,9 @@ Para Node, se cambia el bloque de ruff por hooks locales y se conserva el de git
         pass_filenames: false
 ```
 
-Instalar: `uvx --python 3.12 pre-commit autoupdate && uvx --python 3.12 pre-commit install`. Los hooks necesitan uv, también en proyectos Node.
+Instalar: `uvx --python 3.14 pre-commit autoupdate && uvx --python 3.14 pre-commit install`. Los hooks necesitan uv, también en proyectos Node.
+
+- **Mensajes de commit.** `commitizen` corre en el hook `commit-msg` y rechaza cualquier mensaje fuera de Conventional Commits; `default_install_hook_types` hace que `pre-commit install` instale también ese hook, y `default_stages` evita que los demás hooks corran una segunda vez en él. Es un hook, no un gate de CI: qué commits verificar depende de cada host.
 
 - **Dos hooks de gitleaks a propósito.** `gitleaks` escanea solo lo que está en staging: bloquea el commit, pero en CI no hay nada en staging, así que pasa aunque ya haya un secreto commiteado. `secrets` escanea el historial y es el gate que corre el CI.
 - **Se rota, no se borra.** Quitar el archivo no limpia el historial; el hallazgo sigue hasta que se rota el secreto y se limpia el historial.

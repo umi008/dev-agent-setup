@@ -1,12 +1,12 @@
 # Reference config
 
-Every snippet was tested on 2026-10-14 in minimal projects (Python, and React with Vite): the gates pass green, and the zero-comments, coverage and secrets gates fail when they should.
+Every snippet was tested on 2026-10-14 and again on 2026-10-20 in minimal projects (Python, and React with Vite): the gates pass green, and the zero-comments, coverage, dependency, secrets and commit-message checks fail when they should.
 
 ## Python
 
 `.python-version`
 ```
-3.12
+3.14
 ```
 
 `pyproject.toml`
@@ -15,11 +15,11 @@ Every snippet was tested on 2026-10-14 in minimal projects (Python, and React wi
 name = "my-service"
 version = "0.1.0"
 description = "What the service does, in one line"
-requires-python = "==3.12.*"
+requires-python = "==3.14.*"
 dependencies = []
 
 [dependency-groups]
-dev = ["mypy", "pytest", "pytest-cov", "ruff"]
+dev = ["mypy", "pytest", "pytest-cov", "pytest-randomly", "pytest-xdist", "ruff"]
 
 [tool.ruff]
 line-length = 100
@@ -57,9 +57,12 @@ def test_no_comments() -> None:
     assert not offenders, offenders
 ```
 
-`requires-python` is `==3.12.*`, not `>=3.12`: a range would contradict the pin.
+`requires-python` is `==3.14.*`, not `>=3.14`: a range would contradict the pin.
 
 First use: `uv lock && uv sync --locked`. Then, the gates from the table.
+
+- **`pytest-xdist` and `pytest-randomly`** turn "hermetic and parallel" into a gate: `-n auto` spreads the tests over one worker per CPU and the order changes on every run. A test that depends on another one fails sooner or later; the run prints `Using --randomly-seed=<n>`, and passing that flag reproduces the order.
+- **`uv audit` is a uv preview.** `--preview-features audit-command` accepts it explicitly and silences the warning; `--locked` audits the committed lockfile. It fails on any known vulnerability, and `uv lock --upgrade-package <name>` moves the package to a fixed version.
 
 ## Frontend (Node / React)
 
@@ -83,10 +86,10 @@ pnpm add -D typescript@6 vite @vitejs/plugin-react vitest @vitest/coverage-v8 js
     "test": "vitest run --coverage"
   },
   "devEngines": {
-    "packageManager": { "name": "pnpm", "version": "12.11.2", "onFail": "download" },
+    "packageManager": { "name": "pnpm", "version": "12.14.0", "onFail": "download" },
     "runtime": { "name": "node", "version": "24.22.0", "onFail": "download" }
   },
-  "packageManager": "pnpm@12.11.2"
+  "packageManager": "pnpm@12.14.0"
 }
 ```
 
@@ -189,8 +192,10 @@ export default defineConfig([
 
 - **pnpm, not npm.** pnpm pins itself and Node in `package.json` and the lockfile, and downloads them when missing; npm only validates `devEngines`. `pnpm self-update` bumps the pnpm pin to the latest.
 - **`noInlineConfig` is mandatory.** Without it, `/* eslint-disable */` switches off `local/no-comments` itself and the gate does not see it. With it, ESLint ignores the directive, reports it and `--max-warnings 0` fails.
-- **TypeScript 6, not 7.** On 2026-10-14 `typescript-eslint` 8.71.2 requires `typescript <6.1.0`. Once it supports 7, bump it.
-- **`@types/node` is needed.** `vitest/config` references Node types and `tsc` fails without them. Keep its major equal to the Node pin.
+- **TypeScript 6, not 7.** On 2026-10-20 `typescript-eslint` 8.72.0 still requires `typescript <6.1.0`. Once it supports 7, bump it.
+- **`@types/node` is needed.** `vitest/config` references Node types and `tsc` fails without them. Keep its major equal to the Node pin. Node 26 becomes the active LTS on 2026-10-28: from then `pnpm runtime set node lts` writes 26, and `@types/node@26` goes in the same commit.
+- **`pnpm audit --audit-level high`** is the dependency gate: it fails on high and critical advisories.
+- **Supply-chain defaults are on.** Since pnpm 11, `minimumReleaseAge` (one day) skips versions published in the last 24 hours and `blockExoticSubdeps` refuses transitive dependencies from git or tarball URLs. On 2026-10-20 `pnpm add` resolved `typescript-eslint` 8.71.2, not the 8.72.0 published the day before: that is the guard working, not a stale lockfile.
 - **Testing Library needs `tests/setup.ts`.** Without globals it does not clean up between tests and the second one fails with "Found multiple elements".
 - **`react-hooks`** is part of the lint gate: it fails on a hook called conditionally.
 
@@ -198,12 +203,18 @@ export default defineConfig([
 
 `.pre-commit-config.yaml` for Python. `rev` is left empty and `pre-commit autoupdate` fills it.
 ```yaml
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: ""
     hooks:
       - id: ruff-check
       - id: ruff-format
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: ""
+    hooks:
+      - id: commitizen
   - repo: https://github.com/gitleaks/gitleaks
     rev: ""
     hooks:
@@ -215,7 +226,7 @@ repos:
         stages: [manual]
 ```
 
-For Node, replace the ruff block with local hooks and keep the gitleaks block:
+For Node, replace the ruff block with local hooks and keep the rest:
 ```yaml
   - repo: local
     hooks:
@@ -231,7 +242,9 @@ For Node, replace the ruff block with local hooks and keep the gitleaks block:
         pass_filenames: false
 ```
 
-Install: `uvx --python 3.12 pre-commit autoupdate && uvx --python 3.12 pre-commit install`. The hooks need uv, also in Node projects.
+Install: `uvx --python 3.14 pre-commit autoupdate && uvx --python 3.14 pre-commit install`. The hooks need uv, also in Node projects.
+
+- **Commit messages.** `commitizen` runs on the `commit-msg` hook and rejects any message outside Conventional Commits; `default_install_hook_types` makes `pre-commit install` set up that hook too, and `default_stages` keeps the other hooks from running a second time on it. It is a hook, not a CI gate: which commits to check depends on each host.
 
 - **Two gitleaks hooks on purpose.** `gitleaks` scans only the staged changes: it blocks the commit, but in CI nothing is staged, so it passes even with a secret already committed. `secrets` scans the history and is the gate that CI runs.
 - **Rotate, do not delete.** Removing the file does not clear the history; the finding stays until the secret is rotated and the history is cleaned.
