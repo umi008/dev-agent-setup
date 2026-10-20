@@ -34,13 +34,13 @@ aprender. Puedes leerlo completo en diez minutos.
 | --- | --- | --- |
 | **Estándar de ingeniería** | Un estándar corto y ejecutable — versiones, gates, tests, estructura, observabilidad, docs — con prompts de adopción y la config de cada gate. Está escrito para agentes de código, así que cada regla se respalda con un gate que falla, no con prosa. | [`standards/README.es.md`](standards/README.es.md) |
 | **Servidores MCP** | Los MCPs que uso y para qué sirve cada uno: Tavily, Context7, Engram — con Exa y Firecrawl como alternativas directas a Tavily, y el MCP de Playwright como opción junto a la skill `playwright-cli`. | [`mcps/MCPS.md`](mcps/MCPS.md) |
-| **Skills** | 18 skills de agente, instaladas globalmente desde sus repos upstream con el CLI `skills` en `~/.agents/skills` y enlazadas en `~/.claude/skills` para Claude Code. | [`skills/SKILLS.md`](skills/SKILLS.md) |
+| **Skills** | 25 skills de agente, instaladas globalmente desde sus repos upstream con el CLI `skills` en `~/.agents/skills` y enlazadas en `~/.claude/skills` para Claude Code. | [`skills/SKILLS.md`](skills/SKILLS.md) |
 
 ## Se usa con Gentle AI
 
 Este repo es la mitad del setup; [**Gentle AI**](https://github.com/Gentleman-Programming/gentle-ai)
 es la otra. Gentle AI es la capa de harness sobre [Pi](https://pi.dev): planifica, delega en subagentes
-enfocados, revisa sus propios cambios y trae sus propias skills además de las dieciocho de abajo. Se instala
+enfocados, revisa sus propios cambios y trae sus propias skills además de las veinticinco de abajo. Se instala
 en Pi con `pi install npm:gentle-pi`.
 
 También es de donde vienen **Context7** y **Engram** — por eso `mcps/MCPS.md` los lista sin pedirte que

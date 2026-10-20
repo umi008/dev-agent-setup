@@ -41,6 +41,7 @@ Siempre LTS o la última estable, nunca versiones experimentales (alpha, beta, R
 - **Herméticos y paralelos:** sin estado compartido, con `tmp_path`, puertos efímeros, cero red tras el sync y sin orden entre tests. Deben correr igual desde un clon limpio. En Python, `pytest-xdist` (`-n auto`) los corre en paralelo y `pytest-randomly` baraja su orden en cada corrida; Vitest ya corre los archivos de test en paralelo.
 - **Bug fix:** empieza con un test que reproduce el bug. Sin ese test, el fix está pospuesto.
 - **Comportamiento, no implementación:** los tests afirman lo observable. Un test flaky pasa a cuarentena, no se tolera.
+- **Hecho es visto funcionando:** los tests en verde son necesarios, no suficientes. Un cambio de UI se revisa en un navegador real (`playwright-cli`), y un cambio de CLI o API se corre una vez de punta a punta, antes de darlo por hecho.
 
 ## Estructura
 - **Raíz común:** `README.md`, `AGENTS.md`, `.pre-commit-config.yaml`, pipeline, `.gitignore`, manifiesto con lockfile y runtime pineado.
@@ -55,12 +56,13 @@ Objetivo: reconstruir un incidente con un solo id.
 - **Niveles:** `ERROR` es lo que nadie manejó y alguien debe abrir; lo manejado (retry, fallback) es `WARN`; `DEBUG` va apagado o muestreado en producción.
 - **Eventos de negocio:** nombre estable `dominio.hecho` y sin PII. No reemplazan al log.
 - **Sampling y alertas:** se muestrea `DEBUG` y el tráfico alto, nunca `ERROR`. Las alertas van sobre latencia (p95) y tasa de error, no solo sobre excepciones.
+- **Legible para el agente:** en desarrollo todo proceso loguea a un solo lugar que el agente puede leer, correos y webhooks salientes incluidos, y cada tarea es un comando (`pnpm <script>`, `uv run <comando>`).
 - **Anti-patrones:** loguear en vez de lanzar, loguear PII, todo en `ERROR`, doble logging por capa.
 
 ## Documentación
 Mínima: un agente lee el código directamente, así que la documentación no lo repite.
 - **`README.md`:** qué es, cómo instalar, correr y testear.
-- **`AGENTS.md`:** estructura real, convención por carpeta y las reglas de código para agentes.
+- **`AGENTS.md`:** estructura real, convención por carpeta y las reglas de código para agentes. Corto (menos de unos 1k tokens, punteros en vez de prosa) y se recorta con cada modelo nuevo: los modelos más capaces necesitan menos instrucciones.
 - **API pública:** docstring de una línea en Python y JSDoc en TS. Es el único comentario permitido.
 - **ADR (Architecture Decision Record, en `docs/decisiones.md`):** solo para decisiones estructurales o difíciles de revertir. Cortos: contexto, decisión y alternativas descartadas. No se reescriben: uno nuevo supersede al viejo.
 - **Un dato, un dueño:** si una tabla vive en dos archivos, diverge.
@@ -81,7 +83,7 @@ Mínima: un agente lee el código directamente, así que la documentación no lo
 **Se reporta el bloqueo. Nunca se debilita en silencio.**
 
 ## Escala de enforcement
-De más fuerte a más débil: **arquitectura** (el error es imposible por diseño) > **lint, tipos y tests** (el gate falla) > **reglas y skills** (un agente puede ignorarlas) > **revisión humana** (último recurso). Si algo se corrige dos veces, se sube un peldaño: se escribe el guard, se ve fallar (RED), se arregla la causa y se limpian las instancias hasta que pase.
+De más fuerte a más débil: **arquitectura** (el error es imposible por diseño) > **lint, tipos y tests** (el gate falla) > **reglas y skills** (un agente puede ignorarlas) > **revisión humana** (último recurso). Un error que el agente comete una vez se vuelve una línea en `AGENTS.md`. Si se corrige dos veces, se sube un peldaño: se escribe el guard, se ve fallar (RED), se arregla la causa y se limpian las instancias hasta que pase.
 
 ## Adopción y auditoría
 - **Proyecto nuevo:** este documento vive en el repo desde el inicio, y los gates quedan en verde antes de escribir código de dominio.

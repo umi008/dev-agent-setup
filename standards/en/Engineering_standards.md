@@ -41,6 +41,7 @@ Always LTS or the latest stable release, never experimental versions (alpha, bet
 - **Hermetic and parallel:** no shared state; `tmp_path`, ephemeral ports, zero network after sync, no ordering between tests. They must run the same from a clean clone. In Python, `pytest-xdist` (`-n auto`) runs them in parallel and `pytest-randomly` shuffles their order on every run; Vitest already runs test files in parallel.
 - **Bug fix:** starts with a test that reproduces the bug. Without it, the fix is postponed.
 - **Behavior, not implementation:** tests assert what is observable. A flaky test goes to quarantine; it is not tolerated.
+- **Done means seen working:** green tests are necessary, not sufficient. A UI change is checked in a real browser (`playwright-cli`), and a CLI or API change is run once end to end, before it is called done.
 
 ## Structure
 - **Common root:** `README.md`, `AGENTS.md`, `.pre-commit-config.yaml`, pipeline, `.gitignore`, manifest with lockfile and pinned runtime.
@@ -55,12 +56,13 @@ Goal: reconstruct an incident from a single id.
 - **Levels:** `ERROR` is what nobody handled and someone must open; what was handled (retry, fallback) is `WARN`; `DEBUG` is off or sampled in production.
 - **Business events:** stable name `domain.fact` and no PII. They do not replace the log.
 - **Sampling and alerts:** sample `DEBUG` and high traffic, never `ERROR`. Alerts go on latency (p95) and error rate, not just on exceptions.
+- **Readable by the agent:** in development every process logs to one place the agent can read, outgoing email and webhooks included, and each task is one command (`pnpm <script>`, `uv run <command>`).
 - **Anti-patterns:** logging instead of raising, logging PII, everything at `ERROR`, double logging per layer.
 
 ## Documentation
 Minimal: an agent reads the code directly, so the documentation does not repeat it.
 - **`README.md`:** what it is, how to install, run and test.
-- **`AGENTS.md`:** real structure, per-folder convention and the code rules for agents.
+- **`AGENTS.md`:** real structure, per-folder convention and the code rules for agents. Short (under about 1k tokens, pointers rather than prose) and pruned with each new model: smarter models need fewer instructions.
 - **Public API:** one-line docstring in Python and JSDoc in TS. It is the only comment allowed.
 - **ADR (Architecture Decision Record, in `docs/decisions.md`):** only for structural or hard-to-reverse decisions. Short: context, decision and rejected alternatives. They are not rewritten: a new one supersedes the old one.
 - **One fact, one owner:** if a table lives in two files, it drifts.
@@ -81,7 +83,7 @@ Minimal: an agent reads the code directly, so the documentation does not repeat 
 **Report the blocker. Never weaken anything silently.**
 
 ## Enforcement ladder
-From strongest to weakest: **architecture** (the error is impossible by design) > **lint, types and tests** (the gate fails) > **rules and skills** (an agent can ignore them) > **human review** (last resort). If something is corrected twice, climb one rung: write the guard, watch it fail (RED), fix the cause and clean up the existing instances until it passes.
+From strongest to weakest: **architecture** (the error is impossible by design) > **lint, types and tests** (the gate fails) > **rules and skills** (an agent can ignore them) > **human review** (last resort). A mistake the agent makes once becomes a line in `AGENTS.md`. If it is corrected twice, climb one rung: write the guard, watch it fail (RED), fix the cause and clean up the existing instances until it passes.
 
 ## Adoption and audit
 - **New project:** this document lives in the repo from the start, and the gates are green before any domain code is written.
